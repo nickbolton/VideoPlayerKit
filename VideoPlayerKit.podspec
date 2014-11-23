@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   s.name     = 'VideoPlayerKit'
   s.version  = '1.0.0'
-  s.platform = :ios, '5.0'
+  s.platform = :ios, '7.1'
   s.license  = { :type => 'MIT'}
   s.summary  = 'A custom iOS video player with controls, progress bar, and airplay all set up.'
   s.homepage = 'https://github.com/ign/VideoPlayerKit'
