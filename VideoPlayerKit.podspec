@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
 		   'everyone life easier.'
   s.source_files = 'Code/*.{h,m}'
   s.resources    = 'Assets/*.png'
-  s.dependency 'ShareThis', :git => 'https://github.com/nickbolton/ShareThis.git', :branch => 'master'
+#  s.dependency 'ShareThis', :git => 'https://github.com/nickbolton/ShareThis.git', :branch => 'master'
   s.frameworks    = 'AudioToolbox', 'CoreMedia', 'AVFoundation', 'MediaPlayer'
   s.requires_arc = true
 end
