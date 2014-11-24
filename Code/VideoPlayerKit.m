@@ -8,6 +8,8 @@ NSString * const kVideoPlayerVideoChangedNotification = @"VideoPlayerVideoChange
 NSString * const kVideoPlayerWillHideControlsNotification = @"VideoPlayerWillHideControlsNotitication";
 NSString * const kVideoPlayerWillShowControlsNotification = @"VideoPlayerWillShowControlsNotification";
 NSString * const kTrackEventVideoStart = @"Video Start";
+NSString * const kTrackEventVideoReadyToPlay = @"Ready to Play";
+NSString * const kTrackEventVideoNotReadyToPlay = @"Not Ready to Play";
 NSString * const kTrackEventVideoLiveStart = @"Video Live Start";
 NSString * const kTrackEventVideoComplete = @"Video Complete";
 
@@ -19,7 +21,6 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
 @property (readwrite) BOOL restoreVideoPlayStateAfterScrubbing;
 @property (readwrite, strong) id scrubberTimeObserver;
 @property (readwrite, strong) id playClockTimeObserver;
-@property (readwrite) BOOL seekToZeroBeforePlay;
 @property (readwrite) BOOL rotationIsLocked;
 @property (readwrite) BOOL playerIsBuffering;
 @property (nonatomic, weak) UIViewController *containingViewController;
@@ -30,6 +31,7 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
 @property (nonatomic, strong) FullScreenViewController *fullscreenViewController;
 @property (nonatomic) CGRect previousBounds;
 @property (nonatomic) BOOL hideTopViewWithControls;
+@property (nonatomic) BOOL stopped;
 
 @end
 
@@ -74,6 +76,7 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
         self.containingViewController = containingViewController;
         self.hideTopViewWithControls = hideTopViewWithControls;
         self.topView = topView;
+        self.stopped = YES;
     }
     
     return self;
@@ -165,9 +168,9 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
 {
     if (self.fullScreenModeToggled) {
         BOOL isHidingPlayerControls = self.videoPlayerView.playerControlBar.alpha == 0;
-        [[UIApplication sharedApplication] setStatusBarHidden:isHidingPlayerControls withAnimation:UIStatusBarAnimationNone];
+//        [[UIApplication sharedApplication] setStatusBarHidden:isHidingPlayerControls withAnimation:UIStatusBarAnimationNone];
     } else {
-        [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
+//        [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
     }
 }
 
@@ -182,20 +185,25 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
     // Minimize the video if fullscreen so that DodgeThis could work
     if (self.fullScreenModeToggled) {
         showShareOptions = YES;
-        [self minimizeVideo];
-    } else {    
+//        [self minimizeVideo];
+    } else {
         [self presentShareOptions];
     }
 }
 
-- (void)playVideoWithTitle:(NSString *)title URL:(NSURL *)url videoID:(NSString *)videoID shareURL:(NSURL *)shareURL isStreaming:(BOOL)streaming playInFullScreen:(BOOL)playInFullScreen
-{
+- (void)playVideoWithTitle:(NSString *)title
+                       URL:(NSURL *)url
+                   videoID:(NSString *)videoID
+                  shareURL:(NSURL *)shareURL
+               isStreaming:(BOOL)streaming {
+
+    self.stopped = NO;
     [self.videoPlayer pause];
     
-    [[_videoPlayerView activityIndicator] startAnimating];
+//    [[_videoPlayerView activityIndicator] startAnimating];
     // Reset the buffer bar back to 0
     [self.videoPlayerView.progressView setProgress:0 animated:NO];
-    [self showControls];
+//    [self showControls];
     
     NSString *vidID = videoID ?: @"";
     _currentVideoInfo = @{ @"title": title ?: @"", @"videoID": vidID, @"isStreaming": @(streaming), @"shareURL": shareURL ?: url};
@@ -225,10 +233,8 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
     
     [self syncPlayPauseButtons];
     
-    if (playInFullScreen) {
-        self.isAlwaysFullscreen = YES;
-        [self launchFullScreen];
-    }
+    self.isAlwaysFullscreen = YES;
+    [self launchFullScreen];
 }
 
 - (void)showCannotFetchStreamError
@@ -257,7 +263,7 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
     }
     
     [self syncPlayPauseButtons];
-    [self showControls];
+//    [self showControls];
 }
 
 - (void)launchFullScreen
@@ -271,58 +277,28 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
         
         [self syncFullScreenButton:[[UIApplication sharedApplication] statusBarOrientation]];
         
-        if (!self.fullscreenViewController) {
-            self.fullscreenViewController = [[FullScreenViewController alloc] init];
-            self.fullscreenViewController.allowPortraitFullscreen = self.allowPortraitFullscreen;
-        }
-        
         [self.videoPlayerView setFullscreen:YES];
-        [self.fullscreenViewController.view addSubview:self.videoPlayerView];
-        
+        self.videoPlayerView.shareButton.hidden = YES;
         
         if (self.topView) {
             [self.topView removeFromSuperview];
-            [self.fullscreenViewController.view addSubview:self.topView];
+            [self.view addSubview:self.topView];
         }
         
-        if (self.isAlwaysFullscreen) {
-            self.videoPlayerView.alpha = 0.0;
-        } else {
-            self.previousBounds = self.videoPlayerView.frame;
-            [UIView animateWithDuration:0.45f
-                                  delay:0.0f
-                                options:UIViewAnimationCurveLinear
-                             animations:^{
-                                 [self.videoPlayerView setCenter:CGPointMake( self.videoPlayerView.superview.bounds.size.width / 2, ( self.videoPlayerView.superview.bounds.size.height / 2))];
-                                 self.videoPlayerView.bounds = self.videoPlayerView.superview.bounds;
-                             }
-                             completion:nil];
+        self.videoPlayerView.alpha = 1.0f;
+        
+        self.videoPlayerView.frame = CGRectMake(self.videoPlayerView.superview.bounds.size.width / 2, self.videoPlayerView.superview.bounds.size.height / 2, 0, 0);
+        self.previousBounds = CGRectMake(self.videoPlayerView.superview.bounds.size.width / 2, self.videoPlayerView.superview.bounds.size.height / 2, 0, 0);
+        [self.videoPlayerView setCenter:CGPointMake( self.videoPlayerView.superview.bounds.size.width / 2, self.videoPlayerView.superview.bounds.size.height / 2)];        
+        self.videoPlayerView.frame = self.videoPlayerView.superview.bounds;
+    
+        if (self.topView) {
+            self.topView.frame = CGRectMake(0, 0, self.videoPlayerView.frame.size.width, self.topView.frame.size.height);
         }
         
-        [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:self.fullscreenViewController animated:YES completion:^{
-            if (self.isAlwaysFullscreen) {
-                self.videoPlayerView.frame = CGRectMake(self.videoPlayerView.superview.bounds.size.width / 2, self.videoPlayerView.superview.bounds.size.height / 2, 0, 0);
-                self.previousBounds = CGRectMake(self.videoPlayerView.superview.bounds.size.width / 2, self.videoPlayerView.superview.bounds.size.height / 2, 0, 0);
-                [self.videoPlayerView setCenter:CGPointMake( self.videoPlayerView.superview.bounds.size.width / 2, self.videoPlayerView.superview.bounds.size.height / 2)];
-                [UIView animateWithDuration:0.25f
-                                      delay:0.0f
-                                    options:UIViewAnimationCurveLinear
-                                 animations:^{
-                                     self.videoPlayerView.alpha = 1.0;
-                                 }
-                                 completion:nil];
-                
-                self.videoPlayerView.frame = self.videoPlayerView.superview.bounds;
-            }
-            
-            if (self.topView) {
-                self.topView.frame = CGRectMake(0, 0, self.videoPlayerView.frame.size.width, self.topView.frame.size.height);
-            }
-            
-            if ([self.delegate respondsToSelector:@selector(setFullScreenToggled:)]) {
-                [self.delegate setFullScreenToggled:self.fullScreenModeToggled];
-            }
-        }];
+        if ([self.delegate respondsToSelector:@selector(setFullScreenToggled:)]) {
+            [self.delegate setFullScreenToggled:self.fullScreenModeToggled];
+        }
     }
 }
 
@@ -376,8 +352,8 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
             if (!self.isAlwaysFullscreen) {
                 [self showControls];
             }
-            [[UIApplication sharedApplication] setStatusBarHidden:NO
-                                                    withAnimation:UIStatusBarAnimationFade];
+//            [[UIApplication sharedApplication] setStatusBarHidden:NO
+//                                                    withAnimation:UIStatusBarAnimationFade];
             
             if ([self.delegate respondsToSelector:@selector(setFullScreenToggled:)]) {
                 [self.delegate setFullScreenToggled:self.fullScreenModeToggled];
@@ -388,10 +364,10 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
 
 - (void)fullScreenButtonHandler
 {
-    [self showControls];
+//    [self showControls];
     
     if (self.fullScreenModeToggled) {
-        [self minimizeVideo];
+//        [self minimizeVideo];
     } else {
         [self launchFullScreen];
     }
@@ -434,7 +410,7 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
     if (_videoPlayerView.playerControlBar.alpha) {
         [self hideControlsAnimated:YES];
     } else {
-        [self showControls];
+//        [self showControls];
     }
 }
 
@@ -531,12 +507,19 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
     } else if ([keyPath isEqualToString:@"playbackBufferEmpty"] && _videoPlayer.currentItem.playbackBufferEmpty) {
         self.playerIsBuffering = YES;
         [[_videoPlayerView activityIndicator] startAnimating];
+        if ([self.delegate respondsToSelector:@selector(trackEvent:videoID:title:)]) {
+            [self.delegate trackEvent:kTrackEventVideoNotReadyToPlay videoID:[_currentVideoInfo objectForKey:@"videoID"] title:[_currentVideoInfo objectForKey:@"title"]];
+        }
         [self syncPlayPauseButtons];
     } else if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"] && _videoPlayer.currentItem.playbackLikelyToKeepUp) {
         if (![self isPlaying] && (playWhenReady || self.playerIsBuffering || scrubBuffering)) {
             [self playVideo];
         }
         [[_videoPlayerView activityIndicator] stopAnimating];
+        
+        if ([self.delegate respondsToSelector:@selector(trackEvent:videoID:title:)]) {
+            [self.delegate trackEvent:kTrackEventVideoReadyToPlay videoID:[_currentVideoInfo objectForKey:@"videoID"] title:[_currentVideoInfo objectForKey:@"title"]];
+        }
         
     } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {
         float durationTime = CMTimeGetSeconds([[self.videoPlayer currentItem] duration]);
@@ -563,15 +546,20 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
     }
 }
 
+- (void)stopVideo {
+    self.stopped = YES;
+    self.URL = nil;
+}
+
 - (void)playVideo
 {
-    if (self.view.superview) {
+    if (self.stopped == NO && self.view.superview) {
         self.playerIsBuffering = NO;
         scrubBuffering = NO;
         playWhenReady = NO;
         // Configuration is done, ready to start.
         [self.videoPlayer play];
-        [self updatePlaybackProgress];
+//        [self updatePlaybackProgress];
     }
 }
 
@@ -587,8 +575,8 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
     } completion:nil];
     
     if (self.fullScreenModeToggled) {
-        [[UIApplication sharedApplication] setStatusBarHidden:NO
-                                                withAnimation:UIStatusBarAnimationFade];
+//        [[UIApplication sharedApplication] setStatusBarHidden:NO
+//                                                withAnimation:UIStatusBarAnimationFade];
     }
 
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(hideControlsAnimated:) object:@YES];
@@ -611,8 +599,8 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
         } completion:nil];
         
         if (self.fullScreenModeToggled) {
-            [[UIApplication sharedApplication] setStatusBarHidden:YES
-                                                    withAnimation:UIStatusBarAnimationFade];
+//            [[UIApplication sharedApplication] setStatusBarHidden:YES
+//                                                    withAnimation:UIStatusBarAnimationFade];
         }
         
     } else {
@@ -620,8 +608,8 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
         self.videoPlayerView.titleLabel.alpha = 0;
         _videoPlayerView.shareButton.alpha = 0;
         if (self.fullScreenModeToggled) {
-            [[UIApplication sharedApplication] setStatusBarHidden:YES
-                                                    withAnimation:UIStatusBarAnimationNone];
+//            [[UIApplication sharedApplication] setStatusBarHidden:YES
+//                                                    withAnimation:UIStatusBarAnimationNone];
         }
     }
 }
@@ -629,7 +617,7 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
 - (void)updatePlaybackProgress
 {
     [self syncPlayPauseButtons];
-    [self showControls];
+//    [self showControls];
     
     double interval = .1f;
     
@@ -688,7 +676,7 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
         [self.delegate trackEvent:kTrackEventVideoComplete videoID:[_currentVideoInfo objectForKey:@"videoID"] title:[_currentVideoInfo objectForKey:@"title"]];
     }
     
-    [self minimizeVideo];
+//    [self minimizeVideo];
 }
 
 - (void)syncScrubber
@@ -779,7 +767,7 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
         [_videoPlayer pause];
         [self syncPlayPauseButtons];
         self.restoreVideoPlayStateAfterScrubbing = YES;
-        [self showControls];
+//        [self showControls];
     }
 }
 
@@ -815,7 +803,7 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
     }
     [[_videoPlayerView activityIndicator] startAnimating];
     
-    [self showControls];
+//    [self showControls];
 }
 
 - (NSString *)stringFormattedTimeFromSeconds:(double *)seconds

@@ -31,81 +31,81 @@
 - (id)initWithFrame:(CGRect)frame
 {
     if (self = [super initWithFrame:frame]) {
-        _airplayIsActiveView = [[AirplayActiveView alloc] initWithFrame:CGRectZero];
-        [_airplayIsActiveView setHidden:YES];
-        [self addSubview:_airplayIsActiveView];
-        
-        _titleLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-        [_titleLabel setFont:[UIFont fontWithName:@"Forza-Medium" size:16.0f]];
-        [_titleLabel setTextColor:[UIColor whiteColor]];
-        [_titleLabel setBackgroundColor:[UIColor clearColor]];
-        [_titleLabel setNumberOfLines:2];
-        [_titleLabel setLineBreakMode:NSLineBreakByWordWrapping];
-        [self addSubview:_titleLabel];
-        
-        _playerControlBar = [[UIView alloc] init];
-        [_playerControlBar setOpaque:NO];
-        [_playerControlBar setBackgroundColor:[[UIColor blackColor] colorWithAlphaComponent:0.8]];
-        
-        _playPauseButton = [[UIButton alloc] init];
-        [_playPauseButton setImage:[UIImage imageNamed:@"play-button"] forState:UIControlStateNormal];
-        [_playPauseButton setShowsTouchWhenHighlighted:YES];
-        [_playerControlBar addSubview:_playPauseButton];
-        
-        _fullScreenButton = [[UIButton alloc] init];
-        [_fullScreenButton setImage:[UIImage imageNamed:@"fullscreen-button"] forState:UIControlStateNormal];
-        [_fullScreenButton setShowsTouchWhenHighlighted:YES];
-        [_playerControlBar addSubview:_fullScreenButton];
-        
-        _progressView = [[UIProgressView alloc] init];
-        _progressView.progressTintColor = [UIColor colorWithRed:31.0/255.0 green:31.0/255.0 blue:31.0/255.0 alpha:1.0];
-        _progressView.trackTintColor = [UIColor darkGrayColor];
-        [_playerControlBar addSubview:_progressView];
-        
-        _videoScrubber = [[UISlider alloc] init];
-        [_videoScrubber setMinimumTrackTintColor:[UIColor redColor]];
-        [_videoScrubber setMaximumTrackImage:[UIImage imageNamed:@"transparentBar"] forState:UIControlStateNormal];
-        [_videoScrubber setThumbTintColor:[UIColor whiteColor]];
-        [_playerControlBar addSubview:_videoScrubber];
-        
-        _volumeView = [[MPVolumeView alloc] init];
-        [_volumeView setShowsRouteButton:YES];
-        [_volumeView setShowsVolumeSlider:NO];
-        [_playerControlBar addSubview:_volumeView];
-        
-        // Listen to alpha changes to know when other routes are available
-        for (UIButton *button in [_volumeView subviews]) {
-            if (![button isKindOfClass:[UIButton class]]) {
-                continue;
-            }
-            
-            [button addObserver:self forKeyPath:@"alpha" options:NSKeyValueObservingOptionNew context:nil];
-            [self setAirplayButton:button];
-        }
-        
-        _currentPositionLabel = [[UILabel alloc] init];
-        [_currentPositionLabel setBackgroundColor:[UIColor clearColor]];
-        [_currentPositionLabel setTextColor:[UIColor whiteColor]];
-        [_currentPositionLabel setFont:[UIFont fontWithName:@"DINRoundCompPro" size:14.0f]];
-        [_currentPositionLabel setTextAlignment:NSTextAlignmentCenter];
-        [_playerControlBar addSubview:_currentPositionLabel];
-        
-        _timeLeftLabel = [[UILabel alloc] init];
-        [_timeLeftLabel setBackgroundColor:[UIColor clearColor]];
-        [_timeLeftLabel setTextColor:[UIColor whiteColor]];
-        [_timeLeftLabel setFont:[UIFont fontWithName:@"DINRoundCompPro" size:14.0f]];
-        [_timeLeftLabel setTextAlignment:NSTextAlignmentCenter];
-        [_playerControlBar addSubview:_timeLeftLabel];
-        
-        _activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-        [self addSubview:_activityIndicator];
-
-        _shareButton = [[UIButton alloc] init];
-        [_shareButton setImage:[UIImage imageNamed:@"share-button"] forState:UIControlStateNormal];
-        [_shareButton setShowsTouchWhenHighlighted:YES];
-        
-        [self addSubview:_shareButton];
-        self.controlsEdgeInsets = UIEdgeInsetsZero;
+//        _airplayIsActiveView = [[AirplayActiveView alloc] initWithFrame:CGRectZero];
+//        [_airplayIsActiveView setHidden:YES];
+//        [self addSubview:_airplayIsActiveView];
+//        
+//        _titleLabel = [[UILabel alloc] initWithFrame:CGRectZero];
+//        [_titleLabel setFont:[UIFont fontWithName:@"Forza-Medium" size:16.0f]];
+//        [_titleLabel setTextColor:[UIColor whiteColor]];
+//        [_titleLabel setBackgroundColor:[UIColor clearColor]];
+//        [_titleLabel setNumberOfLines:2];
+//        [_titleLabel setLineBreakMode:NSLineBreakByWordWrapping];
+//        [self addSubview:_titleLabel];
+//        
+//        _playerControlBar = [[UIView alloc] init];
+//        [_playerControlBar setOpaque:NO];
+//        [_playerControlBar setBackgroundColor:[[UIColor blackColor] colorWithAlphaComponent:0.8]];
+//        
+//        _playPauseButton = [[UIButton alloc] init];
+//        [_playPauseButton setImage:[UIImage imageNamed:@"play-button"] forState:UIControlStateNormal];
+//        [_playPauseButton setShowsTouchWhenHighlighted:YES];
+//        [_playerControlBar addSubview:_playPauseButton];
+//        
+//        _fullScreenButton = [[UIButton alloc] init];
+//        [_fullScreenButton setImage:[UIImage imageNamed:@"fullscreen-button"] forState:UIControlStateNormal];
+//        [_fullScreenButton setShowsTouchWhenHighlighted:YES];
+//        [_playerControlBar addSubview:_fullScreenButton];
+//        
+//        _progressView = [[UIProgressView alloc] init];
+//        _progressView.progressTintColor = [UIColor colorWithRed:31.0/255.0 green:31.0/255.0 blue:31.0/255.0 alpha:1.0];
+//        _progressView.trackTintColor = [UIColor darkGrayColor];
+//        [_playerControlBar addSubview:_progressView];
+//        
+//        _videoScrubber = [[UISlider alloc] init];
+//        [_videoScrubber setMinimumTrackTintColor:[UIColor redColor]];
+//        [_videoScrubber setMaximumTrackImage:[UIImage imageNamed:@"transparentBar"] forState:UIControlStateNormal];
+//        [_videoScrubber setThumbTintColor:[UIColor whiteColor]];
+//        [_playerControlBar addSubview:_videoScrubber];
+//        
+//        _volumeView = [[MPVolumeView alloc] init];
+//        [_volumeView setShowsRouteButton:YES];
+//        [_volumeView setShowsVolumeSlider:NO];
+//        [_playerControlBar addSubview:_volumeView];
+//        
+//        // Listen to alpha changes to know when other routes are available
+//        for (UIButton *button in [_volumeView subviews]) {
+//            if (![button isKindOfClass:[UIButton class]]) {
+//                continue;
+//            }
+//            
+//            [button addObserver:self forKeyPath:@"alpha" options:NSKeyValueObservingOptionNew context:nil];
+//            [self setAirplayButton:button];
+//        }
+//        
+//        _currentPositionLabel = [[UILabel alloc] init];
+//        [_currentPositionLabel setBackgroundColor:[UIColor clearColor]];
+//        [_currentPositionLabel setTextColor:[UIColor whiteColor]];
+//        [_currentPositionLabel setFont:[UIFont fontWithName:@"DINRoundCompPro" size:14.0f]];
+//        [_currentPositionLabel setTextAlignment:NSTextAlignmentCenter];
+//        [_playerControlBar addSubview:_currentPositionLabel];
+//        
+//        _timeLeftLabel = [[UILabel alloc] init];
+//        [_timeLeftLabel setBackgroundColor:[UIColor clearColor]];
+//        [_timeLeftLabel setTextColor:[UIColor whiteColor]];
+//        [_timeLeftLabel setFont:[UIFont fontWithName:@"DINRoundCompPro" size:14.0f]];
+//        [_timeLeftLabel setTextAlignment:NSTextAlignmentCenter];
+//        [_playerControlBar addSubview:_timeLeftLabel];
+//        
+//        _activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+//        [self addSubview:_activityIndicator];
+//
+//        _shareButton = [[UIButton alloc] init];
+//        [_shareButton setImage:[UIImage imageNamed:@"share-button"] forState:UIControlStateNormal];
+//        [_shareButton setShowsTouchWhenHighlighted:YES];
+//        
+//        [self addSubview:_shareButton];
+//        self.controlsEdgeInsets = UIEdgeInsetsZero;
     }
     return self;
 }

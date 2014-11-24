@@ -5,6 +5,8 @@
 extern NSString * const kVideoPlayerVideoChangedNotification;
 extern NSString * const kVideoPlayerWillHideControlsNotification;
 extern NSString * const kVideoPlayerWillShowControlsNotification;
+extern NSString * const kTrackEventVideoReadyToPlay;
+extern NSString * const kTrackEventVideoNotReadyToPlay;
 extern NSString * const kTrackEventVideoStart;
 extern NSString * const kTrackEventVideoLiveStart;
 extern NSString * const kTrackEventVideoComplete;
