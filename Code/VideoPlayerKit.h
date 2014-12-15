@@ -12,12 +12,14 @@
 @property (readonly) BOOL fullScreenModeToggled;
 @property (nonatomic) BOOL showStaticEndTime;
 @property (nonatomic, readonly) BOOL isPlaying;
+@property (nonatomic, readonly) BOOL isPaused;
 @property (nonatomic) BOOL allowPortraitFullscreen;
 @property (nonatomic) UIEdgeInsets controlsEdgeInsets;
 @property (readwrite, strong) AVPlayer *videoPlayer;
 @property (readwrite) BOOL seekToZeroBeforePlay;
 
 - (void)stopVideo;
+- (void)pauseVideo;
 - (void)playVideoWithTitle:(NSString *)title
                        URL:(NSURL *)url
                    videoID:(NSString *)videoID
