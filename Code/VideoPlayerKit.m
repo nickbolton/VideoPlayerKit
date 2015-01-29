@@ -28,6 +28,7 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
 @property (readwrite) BOOL fullScreenModeToggled;
 @property (nonatomic) BOOL isAlwaysFullscreen;
 @property (nonatomic, readwrite) BOOL isPlaying;
+@property (nonatomic, readwrite) BOOL isPaused;
 @property (nonatomic, strong) FullScreenViewController *fullscreenViewController;
 @property (nonatomic) CGRect previousBounds;
 @property (nonatomic) BOOL hideTopViewWithControls;
@@ -458,16 +459,6 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
         [self.videoPlayer replaceCurrentItemWithPlayerItem:playerItem];
     }
     
-    [self addObservers];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(playerItemDidReachEnd:)
-                                                 name:AVPlayerItemDidPlayToEndTimeNotification
-                                               object:self.videoPlayer.currentItem];
-}
-
-- (void)addObservers {
-    
     // iOS 5
     [_videoPlayer addObserver:self forKeyPath:@"airPlayVideoActive" options:NSKeyValueObservingOptionNew context:nil];
     
@@ -476,6 +467,11 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
                    forKeyPath:@"externalPlaybackActive"
                       options:NSKeyValueObservingOptionNew
                       context:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(playerItemDidReachEnd:)
+                                                 name:AVPlayerItemDidPlayToEndTimeNotification
+                                               object:self.videoPlayer.currentItem];
 }
 
 // Wait for the video player status to change to ready before initializing video player controls
@@ -492,10 +488,6 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
     }
     
     if (object != [_videoPlayer currentItem]) {
-        return;
-    }
-    
-    if (self.stopped) {
         return;
     }
         
@@ -521,13 +513,17 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
         }
         [self syncPlayPauseButtons];
     } else if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"] && _videoPlayer.currentItem.playbackLikelyToKeepUp) {
-        if (![self isPlaying] && (playWhenReady || self.playerIsBuffering || scrubBuffering)) {
-            [self playVideo];
-        }
-        [[_videoPlayerView activityIndicator] stopAnimating];
         
-        if ([self.delegate respondsToSelector:@selector(trackEvent:videoID:title:)]) {
-            [self.delegate trackEvent:kTrackEventVideoReadyToPlay videoID:[_currentVideoInfo objectForKey:@"videoID"] title:[_currentVideoInfo objectForKey:@"title"]];
+        if (self.isPaused == NO) {
+
+            if (![self isPlaying] && (playWhenReady || self.playerIsBuffering || scrubBuffering)) {
+                [self playVideo];
+            }
+            [[_videoPlayerView activityIndicator] stopAnimating];
+            
+            if ([self.delegate respondsToSelector:@selector(trackEvent:videoID:title:)]) {
+                [self.delegate trackEvent:kTrackEventVideoReadyToPlay videoID:[_currentVideoInfo objectForKey:@"videoID"] title:[_currentVideoInfo objectForKey:@"title"]];
+            }
         }
         
     } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {
@@ -561,20 +557,15 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
 }
 
 - (void)pauseVideo {
-    self.stopped = YES;
+    self.isPaused = YES;
+    self.isPlaying = NO;
     [self.videoPlayer pause];
-}
-
-- (void)resumeVideo {
-    
-    if (self.stopped && self.videoPlayer.currentItem != nil) {
-        self.stopped = NO;
-        [self playVideo];
-    }
 }
 
 - (void)playVideo
 {
+    self.isPaused = NO;
+    
     if (self.stopped == NO && self.view.superview) {
         self.playerIsBuffering = NO;
         scrubBuffering = NO;
