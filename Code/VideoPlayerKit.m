@@ -520,16 +520,13 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
         
         BOOL goingToPlay = ![self isPlaying] && (playWhenReady || self.playerIsBuffering || scrubBuffering);
         
-        if (self.isPaused == NO || goingToPlay) {
-
-            if (goingToPlay) {
-                [self playVideo];
-            }
-            [[_videoPlayerView activityIndicator] stopAnimating];
-            
-            if ([self.delegate respondsToSelector:@selector(trackEvent:videoID:title:)]) {
-                [self.delegate trackEvent:kTrackEventVideoReadyToPlay videoID:[_currentVideoInfo objectForKey:@"videoID"] title:[_currentVideoInfo objectForKey:@"title"]];
-            }
+        if (goingToPlay) {
+            [self playVideo];
+        }
+        [[_videoPlayerView activityIndicator] stopAnimating];
+        
+        if ([self.delegate respondsToSelector:@selector(trackEvent:videoID:title:)]) {
+            [self.delegate trackEvent:kTrackEventVideoReadyToPlay videoID:[_currentVideoInfo objectForKey:@"videoID"] title:[_currentVideoInfo objectForKey:@"title"]];
         }
         
     } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {
