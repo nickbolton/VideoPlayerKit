@@ -20,6 +20,7 @@
 
 - (void)stopVideo;
 - (void)pauseVideo;
+- (void)resumeVideo;
 - (void)playVideoWithTitle:(NSString *)title
                        URL:(NSURL *)url
                    videoID:(NSString *)videoID

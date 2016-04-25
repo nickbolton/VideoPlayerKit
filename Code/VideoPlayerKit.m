@@ -490,6 +490,10 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
     if (object != [_videoPlayer currentItem]) {
         return;
     }
+    
+    if (self.stopped) {
+        return;
+    }
         
     if ([keyPath isEqualToString:@"status"]) {
         AVPlayerStatus status = [[change objectForKey:NSKeyValueChangeNewKey] integerValue];
@@ -514,9 +518,11 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
         [self syncPlayPauseButtons];
     } else if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"] && _videoPlayer.currentItem.playbackLikelyToKeepUp) {
         
-        if (self.isPaused == NO) {
+        BOOL goingToPlay = ![self isPlaying] && (playWhenReady || self.playerIsBuffering || scrubBuffering);
+        
+        if (self.isPaused == NO || goingToPlay) {
 
-            if (![self isPlaying] && (playWhenReady || self.playerIsBuffering || scrubBuffering)) {
+            if (goingToPlay) {
                 [self playVideo];
             }
             [[_videoPlayerView activityIndicator] stopAnimating];
@@ -560,6 +566,14 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
     self.isPaused = YES;
     self.isPlaying = NO;
     [self.videoPlayer pause];
+}
+
+- (void)resumeVideo {
+    
+    if (self.stopped && self.videoPlayer.currentItem != nil) {
+        self.stopped = NO;
+        [self playVideo];
+    }
 }
 
 - (void)playVideo
