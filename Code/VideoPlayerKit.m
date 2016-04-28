@@ -520,7 +520,7 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
         
         BOOL goingToPlay = ![self isPlaying] && (playWhenReady || self.playerIsBuffering || scrubBuffering);
         
-        if (goingToPlay) {
+        if (goingToPlay && self.isPaused == NO) {
             [self playVideo];
         }
         [[_videoPlayerView activityIndicator] stopAnimating];
@@ -567,7 +567,7 @@ NSString * const kTrackEventVideoComplete = @"Video Complete";
 
 - (void)resumeVideo {
     
-    if (self.stopped && self.videoPlayer.currentItem != nil) {
+    if ((self.stopped || self.isPaused) && self.videoPlayer.currentItem != nil) {
         self.stopped = NO;
         [self playVideo];
     }
